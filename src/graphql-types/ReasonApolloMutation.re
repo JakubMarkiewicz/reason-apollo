@@ -1,15 +1,5 @@
 open ReasonApolloTypes;
 
-type renderPropObjJS = {
-  .
-  "loading": bool,
-  "called": bool,
-  "data": Js.Nullable.t(Js.Json.t),
-  "error": Js.Nullable.t(apolloError),
-  "networkStatus": Js.Nullable.t(int),
-  "variables": Js.Null_undefined.t(Js.Json.t),
-};
-
 module Make = (Config: Config) => {
   external cast:
     string =>
@@ -36,6 +26,7 @@ module Make = (Config: Config) => {
       ~variables: Js.Json.t=?,
       ~refetchQueries: array(string)=?,
       ~optimisticResponse: Config.t=?,
+      ~update: (ApolloClient.generatedApolloClient, Js.Json.t) => unit=?,
       unit
     ) =>
     Js.Promise.t(executionResponse(Config.t));
@@ -48,6 +39,8 @@ module Make = (Config: Config) => {
     refetchQueries: array(string),
     [@bs.optional]
     optimisticResponse: Config.t,
+    [@bs.optional]
+    update: (ApolloClient.generatedApolloClient, Js.Json.t) => unit,
   };
 
   let convertExecutionResultToReason = (executionResult: executionResult) =>
@@ -66,6 +59,7 @@ module Make = (Config: Config) => {
         ~variables=?,
         ~refetchQueries=?,
         ~optimisticResponse=?,
+        ~update=?,
         (),
       ) =>
     jsMutation(
@@ -73,6 +67,7 @@ module Make = (Config: Config) => {
         ~variables?,
         ~refetchQueries?,
         ~optimisticResponse?,
+        ~update?,
         (),
       ),
     )
@@ -80,7 +75,7 @@ module Make = (Config: Config) => {
          then_(response => resolve(convertExecutionResultToReason(response)))
        );
 
-  let apolloDataToReason: renderPropObjJS => response =
+  let apolloDataToReason: renderPropObjJSMutation => response =
     apolloData =>
       switch (
         apolloData##loading,
@@ -93,7 +88,7 @@ module Make = (Config: Config) => {
       | (false, None, None) => NotCalled
       };
 
-  let convertJsInputToReason = (apolloData: renderPropObjJS) => {
+  let convertJsInputToReason = (apolloData: renderPropObjJSMutation) => {
     result: apolloDataToReason(apolloData),
     data:
       switch (apolloData##data |> ReasonApolloUtils.getNonEmptyObj) {
@@ -119,7 +114,7 @@ module Make = (Config: Config) => {
         ~onError: option(unit => unit)=?,
         ~children: (
                      jsMutationParams => Js.Promise.t(executionResult),
-                     renderPropObjJS
+                     renderPropObjJSMutation
                    ) =>
                    React.element
       ) =>
