@@ -45,6 +45,8 @@ type uploadLinkOptions = {
 [@bs.module "apollo-client"] [@bs.new]
 external createApolloClientJS: 'a => generatedApolloClient = "ApolloClient";
 
+[@bs.module "graphql-tag"] external gql: ReasonApolloTypes.gql = "default";
+
 [@bs.obj]
 external apolloClientObjectParam:
   (
@@ -59,7 +61,6 @@ external apolloClientObjectParam:
   "";
 
 module ReadQuery = (Config: ReasonApolloTypes.Config) => {
-  [@bs.module] external gql: ReasonApolloTypes.gql = "graphql-tag";
   type readQueryOptions = {
     .
     "query": ReasonApolloTypes.queryString,
@@ -88,7 +89,6 @@ module ReadQuery = (Config: ReasonApolloTypes.Config) => {
 };
 
 module WriteQuery = (Config: ReasonApolloTypes.Config) => {
-  [@bs.module] external gql: ReasonApolloTypes.gql = "graphql-tag";
   type writeQueryOptions = {
     .
     "query": ReasonApolloTypes.queryString,
